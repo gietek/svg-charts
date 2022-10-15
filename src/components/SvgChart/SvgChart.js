@@ -1,27 +1,39 @@
-import React, { useCallback, useMemo } from "react";
+import React from "react";
 
-export const SvgChart = ({ width, height, color, values }) => {
+const trendColor = {
+  positive: "#00FFE0",
+  negative: "#ED5252",
+  neutral: "#373C62",
+};
+
+const getTrendColor = (values) => {
+  const firstValue = values[0];
+  const lastValue = values[values.length - 1];
+
+  if (firstValue === lastValue) {
+    return trendColor.neutral;
+  }
+
+  return firstValue > lastValue ? trendColor.negative : trendColor.positive;
+};
+
+export const SvgChart = ({ width, height, values }) => {
   const stepWidth = width / (values.length - 1);
   const maxY = Math.max(...values);
+  const color = getTrendColor(values);
 
-  const getY = useCallback(
-    (value) => Math.round(height - (value / maxY) * height),
-    [height, maxY]
-  );
+  const getY = (value) => Math.round(height - (value / maxY) * height);
 
-  const path = useMemo(() => {
-    const arr = [`M 0 ${getY(values[0])}`];
+  const path = values
+    .map((value, index) => {
+      const command = index === 0 ? "M" : "L";
+      const x = Math.round(stepWidth * index);
+      const y = getY(value);
+      return `${command} ${x} ${y}`;
+    })
+    .join(" ");
 
-    for (let i = 1; i < values.length; i++) {
-      const x = Math.round(stepWidth * i);
-      const y = getY(values[i]);
-      arr.push(`L ${x} ${y}`);
-    }
-
-    return arr.join(" ");
-  }, [getY, stepWidth, values]);
-
-  const id = `linear${Math.random()}${Date.now()}`;
+  const id = `linearGradient${Math.random()}${Date.now()}`;
 
   return (
     <div className="svg-chart">

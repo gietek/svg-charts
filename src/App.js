@@ -14,18 +14,10 @@ const getRandomData = () => {
   return arr;
 };
 
-const colors = ["#373C62", "#00FFE0", "#ED5252", "#373C62"];
-
 export const App = () => {
   return Array.from(Array(200).keys()).map((_, index) => {
     return (
-      <SvgChart
-        key={index}
-        width={40}
-        height={20}
-        values={getRandomData()}
-        color={colors[getRandomValue(0, colors.length - 1)]}
-      />
+      <SvgChart key={index} width={40} height={20} values={getRandomData()} />
     );
   });
 };
