@@ -1,4 +1,5 @@
 import React from "react";
+import { lineCommand, bezierCommand, SvgChartType } from "./helpers";
 
 const trendColor = {
   positive: "#00FFE0",
@@ -17,21 +18,41 @@ const getTrendColor = (values) => {
   return firstValue > lastValue ? trendColor.negative : trendColor.positive;
 };
 
-export const SvgChart = ({ width, height, values }) => {
+export const SvgChart = ({
+  width,
+  height,
+  values,
+  type = SvgChartType.smooth,
+}) => {
   const stepWidth = width / (values.length - 1);
   const maxY = Math.max(...values);
   const color = getTrendColor(values);
+  const marginY = maxY * 0.1;
 
-  const getY = (value) => Math.round(height - (value / maxY) * height);
+  const getY = (value) =>
+    Math.round(height - (value / (maxY + marginY)) * height);
 
-  const path = values
-    .map((value, index) => {
-      const command = index === 0 ? "M" : "L";
-      const x = Math.round(stepWidth * index);
-      const y = getY(value);
-      return `${command} ${x} ${y}`;
-    })
-    .join(" ");
+  const points = values.map((value, index) => {
+    const x = Math.round(stepWidth * index);
+    const y = getY(value);
+
+    return [x, y];
+  });
+
+  const calculatePath = (points, command) => {
+    return points.reduce((acc, point, index, arr) => {
+      if (index === 0) {
+        return `M ${point[0]} ${point[1]}`;
+      }
+
+      return `${acc} ${command(point, index, arr)}`;
+    }, "");
+  };
+
+  const path = calculatePath(
+    points,
+    type === SvgChartType.smooth ? bezierCommand : lineCommand
+  );
 
   const id = `linearGradient${Math.random()}${Date.now()}`;
 
